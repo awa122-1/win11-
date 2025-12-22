@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace ChromeOS_Transformer.Core
 {
-    // 这里是与 Windows 底层通信的翻译官
     internal static class NativeMethods
     {
         [DllImport("user32.dll")]
@@ -31,9 +30,9 @@ namespace ChromeOS_Transformer.Core
         internal enum AccentState
         {
             ACCENT_DISABLED = 0,
-            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2, // 全透明
-            ACCENT_ENABLE_BLURBEHIND = 3,          // 模糊
-            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4    // 亚克力
+            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
+            ACCENT_ENABLE_BLURBEHIND = 3,
+            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4
         }
 
         [StructLayout(LayoutKind.Sequential)]

@@ -1,104 +1,71 @@
+using ChromeOS_Transformer.Core;
+using ChromeOS_Transformer.UI;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Media;
+using System.Net.Http; // 用于下载壁纸
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Threading;
 
-namespace ChromeOS_Transformer.UI
+namespace ChromeOS_Transformer
 {
-    public partial class LauncherWindow : Window
+    public partial class MainWindow : Window
     {
-        private SoundPlayer _clickSound;
-        private string _soundPath;
+        private LauncherWindow? _launcher;
+        private DispatcherTimer? _daemonTimer;
 
-        public LauncherWindow()
+        public MainWindow()
         {
             InitializeComponent();
-            InitSound();
+            this.Visibility = Visibility.Hidden;
+            this.ShowInTaskbar = false;
+
+            InitializeSystem();
         }
 
-        private void InitSound()
+        private async void InitializeSystem()
         {
-            _soundPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "click.wav");
-            if (File.Exists(_soundPath))
+            // 1. 在线下载壁纸并设置 (无需本地文件)
+            await SetOnlineWallpaper();
+
+            // 2. 居中任务栏
+            SystemTweaks.CenterTaskbar();
+
+            // 3. 启动器
+            _launcher = new LauncherWindow();
+            _launcher.Show();
+
+            // 4. 保持透明
+            _daemonTimer = new DispatcherTimer();
+            _daemonTimer.Interval = TimeSpan.FromSeconds(2);
+            _daemonTimer.Tick += (s, e) => SystemTweaks.SetTaskbarTransparent();
+            _daemonTimer.Start();
+        }
+
+        private async Task SetOnlineWallpaper()
+        {
+            string tempPath = Path.Combine(Path.GetTempPath(), "chromeos_bg.jpg");
+            
+            // 如果临时文件夹里已经有下载过的壁纸，就直接用，不重复下载
+            if (!File.Exists(tempPath))
             {
-                _clickSound = new SoundPlayer(_soundPath);
-                try { _clickSound.Load(); } catch { }
-            }
-        }
-
-        private void PlaySound()
-        {
-            try { _clickSound?.Play(); } catch { }
-        }
-
-        // 处理APP点击
-        private void App_Click(object sender, RoutedEventArgs e)
-        {
-            PlaySound(); // 1. 播放音效
-
-            Button btn = sender as Button;
-            string tag = btn.Tag.ToString();
-
-            try
-            {
-                ProcessStartInfo psi = new ProcessStartInfo();
-                psi.UseShellExecute = true; // .NET Core 必须开启这个才能打开URL
-
-                switch (tag)
+                try
                 {
-                    case "chrome":
-                        psi.FileName = "chrome.exe";
-                        break;
-                    case "youtube":
-                        // 尝试以 Chrome APP 模式打开，如果失败则普通打开
-                        psi.FileName = "chrome.exe";
-                        psi.Arguments = "--app=https://www.youtube.com";
-                        break;
-                    case "files":
-                        psi.FileName = "explorer.exe";
-                        break;
+                    using (var client = new HttpClient())
+                    {
+                        // 这里使用一张高质量的 Material Design 壁纸链接
+                        var imageUrl = "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2029&auto=format&fit=crop";
+                        var data = await client.GetByteArrayAsync(imageUrl);
+                        await File.WriteAllBytesAsync(tempPath, data);
+                    }
                 }
-                Process.Start(psi);
+                catch { /* 下载失败就忽略，不换壁纸 */ }
             }
-            catch (Exception ex)
+
+            if (File.Exists(tempPath))
             {
-                MessageBox.Show("启动失败，请确认已安装 Chrome。\n错误: " + ex.Message);
+                SystemTweaks.SetWallpaper(tempPath);
             }
-
-            this.Hide();
-        }
-
-        // 处理换肤点击
-        private void Theme_Click(object sender, RoutedEventArgs e)
-        {
-            PlaySound();
-            Button btn = sender as Button;
-            string colorHex = btn.Tag.ToString();
-
-            try
-            {
-                var brush = (SolidColorBrush)new BrushConverter().ConvertFrom(colorHex);
-                MainCard.Background = brush;
-
-                // 简单的文字变色逻辑
-                if (colorHex == "#202124") // 如果是深色模式
-                {
-                    SearchBox.Foreground = Brushes.White;
-                }
-                else
-                {
-                    SearchBox.Foreground = Brushes.Gray;
-                }
-            }
-            catch { }
-        }
-
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            this.Hide();
         }
     }
 }

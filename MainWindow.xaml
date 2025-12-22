@@ -1,0 +1,8 @@
+<Window x:Class="ChromeOS_Transformer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="100" Width="100" 
+        Visibility="Hidden">
+    <Grid>
+    </Grid>
+</Window>
