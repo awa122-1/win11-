@@ -1,0 +1,1 @@
+change the personalize in Win 11
