@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace ChromeOS_Transformer
+namespace ChromeOSLauncher
 {
     public partial class App : Application
     {

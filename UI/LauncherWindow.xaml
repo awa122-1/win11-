@@ -1,75 +1,62 @@
-using ChromeOS_Transformer.Core;
-using System;
-using System.Diagnostics;
-using System.Media; // 使用系统自带音效，无需文件
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
+<Window
+    x:Class="ChromeOSLauncher.UI.LauncherWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="ChromeOS Launcher"
+    WindowStyle="None"
+    WindowState="Maximized"
+    Background="#FF202124"
+    Loaded="Window_Loaded">
 
-namespace ChromeOS_Transformer.UI
-{
-    public partial class LauncherWindow : Window
-    {
-        public LauncherWindow()
-        {
-            InitializeComponent();
-        }
+    <Grid>
+        <!-- 顶部栏 -->
+        <DockPanel Height="40"
+                   VerticalAlignment="Top"
+                   Background="#FF303134">
+            <TextBlock
+                Text="Chrome OS Launcher"
+                Foreground="White"
+                VerticalAlignment="Center"
+                Margin="15,0"/>
+        </DockPanel>
 
-        // 1. 使用系统提示音 (无需 click.wav 文件)
-        private void PlaySound()
-        {
-            SystemSounds.Exclamation.Play(); 
-        }
+        <!-- 中央应用区 -->
+        <StackPanel
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="40">
 
-        private void App_Click(object sender, RoutedEventArgs e)
-        {
-            PlaySound();
-            if (sender is Button btn)
-            {
-                string tag = btn.Tag.ToString() ?? "";
-                try
-                {
-                    var psi = new ProcessStartInfo { UseShellExecute = true };
-                    switch (tag)
-                    {
-                        case "chrome": psi.FileName = "chrome.exe"; break;
-                        case "youtube": psi.FileName = "https://www.youtube.com"; break; // 直接打开网页
-                        case "files": psi.FileName = "explorer.exe"; break;
-                    }
-                    if(!string.IsNullOrEmpty(psi.FileName)) Process.Start(psi);
-                }
-                catch { MessageBox.Show("无法启动，请检查是否安装了对应软件。"); }
-                
-                this.Hide();
-            }
-        }
+            <Button Content="Chrome"
+                    Width="140"
+                    Height="140"
+                    Click="Chrome_Click"/>
 
-        private void Theme_Click(object sender, RoutedEventArgs e)
-        {
-            PlaySound();
-            if (sender is Button btn)
-            {
-                string hex = btn.Tag.ToString() ?? "#F2F2F2";
-                try
-                {
-                    MainCard.Background = (SolidColorBrush)new BrushConverter().ConvertFrom(hex)!;
-                    SearchBox.Foreground = hex == "#202124" ? Brushes.White : Brushes.Gray;
-                }
-                catch { }
-            }
-        }
+            <Button Content="Notepad"
+                    Width="140"
+                    Height="140"
+                    Click="Notepad_Click"/>
 
-        // 退出并还原 Windows
-        private void Exit_Click(object sender, RoutedEventArgs e)
-        {
-            PlaySound();
-            if (MessageBox.Show("要还原回 Windows 吗？", "退出", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-            {
-                SystemTweaks.RestoreTaskbar(); // 还原任务栏
-                Application.Current.Shutdown(); // 彻底退出
-            }
-        }
+        </StackPanel>
 
-        private void Close_Click(object sender, RoutedEventArgs e) => this.Hide();
-    }
-}
+        <!-- 底部 Dock -->
+        <Border
+            Height="80"
+            VerticalAlignment="Bottom"
+            Background="#FF303134"
+            CornerRadius="20"
+            Margin="40">
+
+            <Grid VerticalAlignment="Center">
+                <CheckBox
+                    x:Name="AutoStartCheck"
+                    Content="开机自动启动"
+                    Foreground="White"
+                    Margin="20"
+                    Checked="AutoStart_Checked"
+                    Unchecked="AutoStart_Unchecked"/>
+            </Grid>
+
+        </Border>
+    </Grid>
+</Window>
